@@ -150,6 +150,8 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedOptions, setSelectedOptions] = useState({
     primaryColor: '#FFFFFF',
+    deckColor: '#FFFFFF',
+    seatColor: '#FFFFFF',
     accentColor: '#DC2626',
     engine: 'standard',
     accessories: {},
@@ -171,13 +173,25 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
   // Configuration options
   const configOptions = {
     colors: {
-      primary: [
+      hull: [
         { id: 'white', name: 'Arctic White', hex: '#FFFFFF', price: 0 },
         { id: 'black', name: 'Midnight Black', hex: '#0A0A0A', price: 500 },
         { id: 'blue', name: 'Ocean Blue', hex: '#1E40AF', price: 800 },
         { id: 'red', name: 'Racing Red', hex: '#DC2626', price: 800 },
         { id: 'silver', name: 'Titanium Silver', hex: '#9CA3AF', price: 1200 },
         { id: 'green', name: 'British Racing Green', hex: '#14532D', price: 1500 }
+      ],
+      deck: [
+        { id: 'white', name: 'White', hex: '#FFFFFF', price: 0 },
+        { id: 'gray', name: 'Gray', hex: '#6B7280', price: 200 },
+        { id: 'beige', name: 'Beige', hex: '#D4B896', price: 300 },
+        { id: 'teak', name: 'Teak Brown', hex: '#8B4513', price: 500 }
+      ],
+      seats: [
+        { id: 'white', name: 'White Leather', hex: '#FFFFFF', price: 0 },
+        { id: 'black', name: 'Black Leather', hex: '#1F1F1F', price: 200 },
+        { id: 'tan', name: 'Tan Leather', hex: '#D2691E', price: 300 },
+        { id: 'red', name: 'Red Sport', hex: '#DC2626', price: 400 }
       ],
       accent: [
         { id: 'red', name: 'Yamaha Red', hex: '#DC2626', price: 0 },
@@ -211,8 +225,16 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
   useEffect(() => {
     let basePrice = typeof product.price === 'number' ? product.price : 50000;
     
-    const primaryColor = configOptions.colors.primary.find(c => c.hex === selectedOptions.primaryColor);
+    const primaryColor = configOptions.colors.hull.find(c => c.hex === selectedOptions.primaryColor);
     if (primaryColor) basePrice += primaryColor.price;
+    
+    if (isBoat) {
+      const deckColor = configOptions.colors.deck.find(c => c.hex === selectedOptions.deckColor);
+      if (deckColor) basePrice += deckColor.price;
+      
+      const seatColor = configOptions.colors.seats.find(c => c.hex === selectedOptions.seatColor);
+      if (seatColor) basePrice += seatColor.price;
+    }
     
     const accentColor = configOptions.colors.accent.find(c => c.hex === selectedOptions.accentColor);
     if (accentColor) basePrice += accentColor.price;
@@ -226,7 +248,7 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
     });
     
     setTotalPrice(basePrice);
-  }, [selectedOptions, product.price]);
+  }, [selectedOptions, product.price, isBoat]);
 
   const togglePackage = (pkgId) => {
     setSelectedOptions(prev => ({
@@ -469,14 +491,14 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
 
               {currentView === 'configurator' ? (
                 <div className="space-y-6">
-                  {/* Primary Color */}
+                  {/* Hull Color (for boats) or Primary Color (for others) */}
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                       <Palette className="w-5 h-5 text-red-500" />
-                      Primary Color
+                      {isBoat ? 'Hull Color' : 'Primary Color'}
                     </h3>
                     <div className="grid grid-cols-3 gap-3">
-                      {configOptions.colors.primary.map((color) => (
+                      {(isBoat ? configOptions.colors.hull : configOptions.colors.hull).map((color) => (
                         <button
                           key={color.id}
                           className={`relative group ${
@@ -496,6 +518,60 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Deck Color (boats only) */}
+                  {isBoat && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">Deck Color</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {configOptions.colors.deck.map((color) => (
+                          <button
+                            key={color.id}
+                            className={`relative group ${
+                              selectedOptions.deckColor === color.hex ? 'ring-2 ring-red-500' : ''
+                            }`}
+                            onClick={() => setSelectedOptions(prev => ({ ...prev, deckColor: color.hex }))}
+                          >
+                            <div 
+                              className="w-full h-16 rounded-lg border-2 border-white/20 transition-all group-hover:scale-105"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <p className="text-xs text-gray-300 mt-2">{color.name}</p>
+                            {color.price > 0 && (
+                              <p className="text-xs text-red-400">+{formatCurrency(color.price)}</p>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Seats Color (boats only) */}
+                  {isBoat && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">Seat Color</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {configOptions.colors.seats.map((color) => (
+                          <button
+                            key={color.id}
+                            className={`relative group ${
+                              selectedOptions.seatColor === color.hex ? 'ring-2 ring-red-500' : ''
+                            }`}
+                            onClick={() => setSelectedOptions(prev => ({ ...prev, seatColor: color.hex }))}
+                          >
+                            <div 
+                              className="w-full h-16 rounded-lg border-2 border-white/20 transition-all group-hover:scale-105"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <p className="text-xs text-gray-300 mt-2">{color.name}</p>
+                            {color.price > 0 && (
+                              <p className="text-xs text-red-400">+{formatCurrency(color.price)}</p>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Accent Color */}
                   <div>
@@ -597,11 +673,29 @@ const Advanced3DConfigurator = ({ product, onClose }) => {
                       </div>
                       
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Primary Color</span>
+                        <span className="text-gray-400">{isBoat ? 'Hull Color' : 'Primary Color'}</span>
                         <span className="text-white">
-                          {configOptions.colors.primary.find(c => c.hex === selectedOptions.primaryColor)?.name}
+                          {configOptions.colors.hull.find(c => c.hex === selectedOptions.primaryColor)?.name}
                         </span>
                       </div>
+                      
+                      {isBoat && (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Deck Color</span>
+                            <span className="text-white">
+                              {configOptions.colors.deck.find(c => c.hex === selectedOptions.deckColor)?.name}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Seat Color</span>
+                            <span className="text-white">
+                              {configOptions.colors.seats.find(c => c.hex === selectedOptions.seatColor)?.name}
+                            </span>
+                          </div>
+                        </>
+                      )}
                       
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Accent Color</span>
