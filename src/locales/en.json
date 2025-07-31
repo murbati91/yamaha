@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "home": "Home",
+    "models": "Models",
+    "services": "Services",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "finance": "Finance"
+  },
+  "hero": {
+    "title": "Rev Your Heart",
+    "subtitle": "Experience the thrill of Yamaha motorcycles in Bahrain",
+    "exploreModels": "Explore Models",
+    "bookTestRide": "Book Test Ride"
+  },
+  "products": {
+    "yzfR1": {
+      "name": "YZF-R1",
+      "tagline": "Pure Racing DNA",
+      "description": "The pinnacle of supersport technology"
+    },
+    "vmax": {
+      "name": "VMAX",
+      "tagline": "Maximum Power",
+      "description": "Unleash the beast within"
+    },
+    "specifications": "Specifications",
+    "engine": "Engine",
+    "power": "Power",
+    "torque": "Torque",
+    "weight": "Weight",
+    "topSpeed": "Top Speed",
+    "fuelCapacity": "Fuel Capacity"
+  },
+  "actions": {
+    "viewIn3D": "View in 3D",
+    "customize": "Customize",
+    "requestBrochure": "Request Brochure",
+    "bookTestRide": "Book Test Ride",
+    "calculate": "Calculate",
+    "apply": "Apply",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "finance": {
+    "calculator": "Finance Calculator",
+    "monthlyPayment": "Monthly Payment",
+    "downPayment": "Down Payment",
+    "loanTenure": "Loan Tenure",
+    "interestRate": "Interest Rate",
+    "totalAmount": "Total Amount",
+    "years": "years",
+    "applyForFinance": "Apply for Finance"
+  },
+  "contact": {
+    "getInTouch": "Get in Touch",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "subject": "Subject",
+    "message": "Message",
+    "sendMessage": "Send Message",
+    "location": "Our Location",
+    "workingHours": "Working Hours"
+  },
+  "footer": {
+    "models": "Models",
+    "services": "Services",
+    "company": "Company",
+    "followUs": "Follow Us",
+    "newsletter": "Newsletter",
+    "subscribe": "Subscribe",
+    "allRightsReserved": "All rights reserved"
+  }
+}

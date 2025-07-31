@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "home": "الرئيسية",
+    "models": "الموديلات",
+    "services": "الخدمات",
+    "aboutUs": "من نحن",
+    "contact": "اتصل بنا",
+    "finance": "التمويل"
+  },
+  "hero": {
+    "title": "أطلق العنان لقلبك",
+    "subtitle": "اختبر إثارة دراجات ياماها النارية في البحرين",
+    "exploreModels": "استكشف الموديلات",
+    "bookTestRide": "احجز تجربة قيادة"
+  },
+  "products": {
+    "yzfR1": {
+      "name": "YZF-R1",
+      "tagline": "حمض نووي سباقي خالص",
+      "description": "قمة تكنولوجيا السوبر سبورت"
+    },
+    "vmax": {
+      "name": "VMAX",
+      "tagline": "القوة القصوى",
+      "description": "أطلق العنان للوحش بداخلك"
+    },
+    "specifications": "المواصفات",
+    "engine": "المحرك",
+    "power": "القوة",
+    "torque": "عزم الدوران",
+    "weight": "الوزن",
+    "topSpeed": "السرعة القصوى",
+    "fuelCapacity": "سعة الوقود"
+  },
+  "actions": {
+    "viewIn3D": "عرض ثلاثي الأبعاد",
+    "customize": "تخصيص",
+    "requestBrochure": "طلب كتيب",
+    "bookTestRide": "حجز تجربة قيادة",
+    "calculate": "احسب",
+    "apply": "تقدم بطلب",
+    "submit": "إرسال",
+    "close": "إغلاق"
+  },
+  "finance": {
+    "calculator": "حاسبة التمويل",
+    "monthlyPayment": "الدفعة الشهرية",
+    "downPayment": "الدفعة المقدمة",
+    "loanTenure": "مدة القرض",
+    "interestRate": "معدل الفائدة",
+    "totalAmount": "المبلغ الإجمالي",
+    "years": "سنوات",
+    "applyForFinance": "تقدم بطلب تمويل"
+  },
+  "contact": {
+    "getInTouch": "تواصل معنا",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "subject": "الموضوع",
+    "message": "الرسالة",
+    "sendMessage": "إرسال الرسالة",
+    "location": "موقعنا",
+    "workingHours": "ساعات العمل"
+  },
+  "footer": {
+    "models": "الموديلات",
+    "services": "الخدمات",
+    "company": "الشركة",
+    "followUs": "تابعنا",
+    "newsletter": "النشرة الإخبارية",
+    "subscribe": "اشترك",
+    "allRightsReserved": "جميع الحقوق محفوظة"
+  }
+}

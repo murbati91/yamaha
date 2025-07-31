@@ -1,72 +1,75 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
-import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench } from 'lucide-react'
-import { Button } from '@/components/ui/button.jsx'
-import { PageLoader, SectionLoader } from './components/LoadingSpinner'
-import { HeroImage, ProductImage } from './components/OptimizedImage'
-import { usePerformance, useNetworkStatus } from './hooks/usePerformance'
-import { AccessibilityProvider, AccessibilityControls } from './components/AccessibilityProvider'
+import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench, Calculator, Images, Anchor, Layers } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { PageLoader, SectionLoader } from '@/components/LoadingSpinner'
+import { HeroImage, ProductImage } from '@/components/OptimizedImage'
+import { usePerformance, useNetworkStatus } from '@/hooks/usePerformance'
+import { AccessibilityProvider, AccessibilityControls } from '@/components/AccessibilityProvider'
+import SEO from '@/components/SEO'
+import LiveChat from '@/components/LiveChat'
+import FinanceCalculator from '@/components/FinanceCalculator'
+import EnhancedProductViewer from '@/components/EnhancedProductViewer'
+import PremiumImageGallery from '@/components/PremiumImageGallery'
+import api from '@/services/api'
+import analytics, { trackEvent, trackPerformance } from '@/services/analytics'
+import { formatCurrency } from '@/utils/helpers'
+import { assetCatalog, getAllProducts } from '@/data/assetCatalog'
 import './App.css'
 
 // Lazy load heavy components for better performance
-const ProductViewer3D = lazy(() => import('./components/ProductViewer3D'))
-const ProductCustomizer = lazy(() => import('./components/ProductCustomizer'))
+const ProductViewer3D = lazy(() => import('@/components/ProductViewer3D'))
+const ProductCustomizer = lazy(() => import('@/components/ProductCustomizer'))
+const PearlCraft3DViewer = lazy(() => import('@/components/PearlCraft3DViewer'))
+const BoatComparisonTool = lazy(() => import('@/components/BoatComparisonTool'))
+const BoatCustomizer = lazy(() => import('@/components/BoatCustomizer'))
+const ModelShowcase = lazy(() => import('@/components/ModelShowcase'))
 
 // Import assets
-import yamahaLogo from './assets/images/yamaha-logo.png'
-import yamahaRacingLogo from './assets/images/yamaha-racing-logo.png'
-import yamahaR1Hero from './assets/images/yamaha-r1-hero.jpg'
-import yamahaVmax from './assets/images/yamaha-vmax.jpg'
-import racingTrackBg from './assets/images/racing-track-bg.jpg'
+import yamahaLogo from '@/assets/images/yamaha-logo.png'
+import yamahaRacingLogo from '@/assets/images/yamaha-racing-logo.png'
 
 function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeModel, setActiveModel] = useState('r1')
+  const [activeCategory, setActiveCategory] = useState('jetSkis')
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCustomizer, setShowCustomizer] = useState(false)
-  const [selectedMotorcycle, setSelectedMotorcycle] = useState(null)
+  const [showProductViewer, setShowProductViewer] = useState(false)
+  const [showFinanceCalculator, setShowFinanceCalculator] = useState(false)
+  const [showGallery, setShowGallery] = useState(false)
+  const [showBoatComparison, setShowBoatComparison] = useState(false)
+  const [showPearlCraft3D, setShowPearlCraft3D] = useState(false)
+  const [showBoatCustomizer, setShowBoatCustomizer] = useState(false)
+  const [showModelShowcase, setShowModelShowcase] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   
   const performance = usePerformance()
   const networkStatus = useNetworkStatus()
 
-  const motorcycles = [
-    {
-      id: 'r1',
-      name: 'YZF-R1',
-      tagline: 'Pure Racing DNA',
-      image: yamahaR1Hero,
-      specs: {
-        engine: '998cc',
-        power: '200hp',
-        torque: '112.4 Nm',
-        weight: '201kg'
-      },
-      price: 'Starting from BHD 8,500'
-    },
-    {
-      id: 'vmax',
-      name: 'VMAX',
-      tagline: 'Maximum Power',
-      image: yamahaVmax,
-      specs: {
-        engine: '1679cc',
-        power: '200hp',
-        torque: '167 Nm',
-        weight: '310kg'
-      },
-      price: 'Starting from BHD 12,000'
-    }
-  ]
-
-  const currentMotorcycle = motorcycles.find(m => m.id === activeModel)
-
-  // Simulate initial loading
+  // Initialize analytics and load initial data
   useEffect(() => {
+    // Initialize analytics
+    analytics.init()
+    trackPerformance()
+    
+    // Track page view
+    analytics.pageView(window.location.pathname, document.title)
+    
+    // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 2000)
+    
     return () => clearTimeout(timer)
   }, [])
+
+  // Get current category products
+  const getCurrentProducts = () => {
+    return assetCatalog[activeCategory] || []
+  }
+
+  const currentProducts = getCurrentProducts()
+  const featuredProduct = currentProducts[0] || assetCatalog.jetSkis[0]
 
   // Smooth scroll to section
   const scrollToSection = (sectionId) => {
@@ -77,29 +80,33 @@ function AppContent() {
     setIsMenuOpen(false)
   }
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (isMenuOpen) setIsMenuOpen(false)
+  const handleProductView = (product) => {
+    setSelectedProduct(product)
+    // Use specialized viewer for Pearl Craft boats
+    if (assetCatalog.pearlCraft.some(boat => boat.id === product.id)) {
+      setShowPearlCraft3D(true)
+    } else {
+      setShowProductViewer(true)
     }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [isMenuOpen])
+    trackEvent.viewProduct(product)
+  }
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isMenuOpen) {
-        setIsMenuOpen(false)
-      }
+  const handleCustomize = (product) => {
+    setSelectedProduct(product)
+    // Use boat customizer for boats and Pearl Craft
+    if (assetCatalog.boats.some(boat => boat.id === product.id) || 
+        assetCatalog.pearlCraft.some(boat => boat.id === product.id)) {
+      setShowBoatCustomizer(true)
+    } else {
+      setShowCustomizer(true)
     }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isMenuOpen])
+    trackEvent.customize3D(product.id, 'start')
+  }
 
-  const handleCustomize = (motorcycle) => {
-    setSelectedMotorcycle(motorcycle)
-    setShowCustomizer(true)
+  const handleFinanceCalculator = (product) => {
+    setSelectedProduct(product)
+    setShowFinanceCalculator(true)
+    trackEvent.clickMenu('Finance Calculator')
   }
 
   // Show loading screen
@@ -107,11 +114,52 @@ function AppContent() {
     return <PageLoader />
   }
 
-  if (showCustomizer && selectedMotorcycle) {
+  // Show model showcase
+  if (showModelShowcase) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <ModelShowcase />
+        <Button
+          className="fixed top-4 right-4 z-50 glass-panel"
+          variant="ghost"
+          onClick={() => setShowModelShowcase(false)}
+        >
+          <X className="w-6 h-6" />
+        </Button>
+      </Suspense>
+    );
+  }
+
+  // Show gallery view
+  if (showGallery) {
+    return (
+      <div className="min-h-screen bg-black">
+        <div className="fixed top-0 left-0 right-0 z-50 glass-panel">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={yamahaLogo} alt="Yamaha" className="h-8" />
+              <span className="text-xl font-bold text-white">Gallery</span>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => setShowGallery(false)}
+              className="text-white hover:bg-white/10"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+        </div>
+        <PremiumImageGallery />
+      </div>
+    )
+  }
+
+  // Show customizer
+  if (showCustomizer && selectedProduct) {
     return (
       <Suspense fallback={<PageLoader />}>
         <ProductCustomizer 
-          motorcycle={selectedMotorcycle}
+          product={selectedProduct}
           onClose={() => setShowCustomizer(false)}
         />
       </Suspense>
@@ -119,19 +167,16 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Performance indicator for development */}
-      {import.meta.env.DEV && (
-        <div className="fixed top-20 right-4 z-40 bg-black bg-opacity-80 text-white p-2 rounded text-xs no-print">
-          <div>Load: {Math.round(performance.loadTime)}ms</div>
-          <div>Network: {networkStatus.effectiveType}</div>
-          <div>Online: {networkStatus.online ? '✓' : '✗'}</div>
-        </div>
-      )}
+    <div className="min-h-screen bg-black text-white">
+      {/* SEO Component */}
+      <SEO 
+        title="Yamaha Bahrain - Marine Products, Boats & Jet Skis | Official Dealer"
+        description="Discover Yamaha's premium marine products in Bahrain. Official dealer for jet skis, boats, and marine accessories. Test rides and financing available."
+      />
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-panel racing-stripe" role="banner">
-        <nav className="container mx-auto px-4 sm:px-6 py-4" role="navigation" aria-label="Main navigation">
+      <header className="fixed top-0 left-0 right-0 z-50 glass-panel racing-stripe">
+        <nav className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <motion.div 
@@ -147,36 +192,53 @@ function AppContent() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
               <button 
-                onClick={() => scrollToSection('models')}
-                className="text-white hover:text-red-400 transition-colors text-sm lg:text-base"
-                aria-label="View motorcycle models"
+                onClick={() => scrollToSection('products')}
+                className="nav-link flex items-center"
               >
-                Models
+                <span className="flex items-center">
+                  Products <ChevronDown className="w-4 h-4 ml-1" />
+                </span>
               </button>
               <button 
-                onClick={() => scrollToSection('experience')}
-                className="text-white hover:text-red-400 transition-colors text-sm lg:text-base"
-                aria-label="Explore 3D experience"
+                onClick={() => setShowModelShowcase(true)}
+                className="nav-link flex items-center gap-2 text-red-400 font-semibold"
               >
-                3D Experience
+                <Play className="w-4 h-4" />
+                3D Showcase
               </button>
               <button 
-                onClick={() => scrollToSection('racing')}
-                className="text-white hover:text-red-400 transition-colors text-sm lg:text-base"
-                aria-label="Learn about racing heritage"
+                onClick={() => setShowGallery(true)}
+                className="nav-link flex items-center gap-2"
               >
-                Racing
+                <Images className="w-4 h-4" />
+                Gallery
+              </button>
+              <button 
+                onClick={() => setShowBoatComparison(true)}
+                className="nav-link flex items-center gap-2"
+              >
+                <Layers className="w-4 h-4" />
+                Compare
+              </button>
+              <button 
+                onClick={() => {
+                  setShowFinanceCalculator(true)
+                  trackEvent.clickMenu('Finance Calculator')
+                }}
+                className="nav-link flex items-center gap-2"
+              >
+                <Calculator className="w-4 h-4" />
+                Finance
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
-                className="text-white hover:text-red-400 transition-colors text-sm lg:text-base"
-                aria-label="Contact information"
+                className="nav-link"
               >
                 Contact
               </button>
               <Button 
-                className="btn-yamaha-secondary text-sm lg:text-base px-4 lg:px-6"
-                aria-label="Book a test ride"
+                className="btn-yamaha-secondary"
+                onClick={() => trackEvent.clickCTA('Book Test Ride', 'header')}
               >
                 Book Test Ride
               </Button>
@@ -189,9 +251,6 @@ function AppContent() {
                 e.stopPropagation()
                 setIsMenuOpen(!isMenuOpen)
               }}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-menu"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -200,48 +259,49 @@ function AppContent() {
           {/* Mobile Menu */}
           {isMenuOpen && (
             <motion.div 
-              id="mobile-menu"
               className="md:hidden mt-4 pb-4 border-t border-white/20"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              role="menu"
             >
               <div className="flex flex-col space-y-4 pt-4">
                 <button 
-                  onClick={() => scrollToSection('models')}
+                  onClick={() => scrollToSection('products')}
                   className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
-                  role="menuitem"
                 >
-                  Models
+                  Products
                 </button>
                 <button 
-                  onClick={() => scrollToSection('experience')}
-                  className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
-                  role="menuitem"
+                  onClick={() => setShowModelShowcase(true)}
+                  className="text-red-400 hover:text-red-300 transition-colors py-2 w-full text-left font-semibold"
                 >
-                  3D Experience
+                  3D Showcase
                 </button>
                 <button 
-                  onClick={() => scrollToSection('racing')}
+                  onClick={() => setShowGallery(true)}
                   className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
-                  role="menuitem"
                 >
-                  Racing
+                  Gallery
+                </button>
+                <button 
+                  onClick={() => setShowBoatComparison(true)}
+                  className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
+                >
+                  Compare Boats
+                </button>
+                <button 
+                  onClick={() => setShowFinanceCalculator(true)}
+                  className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
+                >
+                  Finance Calculator
                 </button>
                 <button 
                   onClick={() => scrollToSection('contact')}
                   className="text-white hover:text-red-400 transition-colors py-2 w-full text-left"
-                  role="menuitem"
                 >
                   Contact
                 </button>
-                <Button 
-                  className="btn-yamaha-secondary w-full mt-4"
-                  role="menuitem"
-                  aria-label="Book a test ride"
-                >
+                <Button className="btn-yamaha-secondary w-full mt-4">
                   Book Test Ride
                 </Button>
               </div>
@@ -251,19 +311,16 @@ function AppContent() {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" tabIndex="-1">
+      <main>
         {/* Hero Section */}
-        <section 
-          className="relative min-h-screen flex items-center justify-center overflow-hidden"
-          aria-labelledby="hero-heading"
-        >
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           {/* Background */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${racingTrackBg})` }}
-            role="img"
-            aria-label="Racing track background"
-          >
+          <div className="absolute inset-0">
+            <img 
+              src="/images/heroes/by8i2921-scaled-1.jpg" 
+              alt="Background"
+              className="w-full h-full object-cover"
+            />
             <div className="absolute inset-0 hero-gradient"></div>
           </div>
 
@@ -271,21 +328,20 @@ function AppContent() {
           <div className="relative z-10 container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
             <motion.div 
-              className="text-center lg:text-left order-2 lg:order-1"
+              className="text-center lg:text-left"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <motion.h1 
-                id="hero-heading"
                 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                <span className="text-white">REV YOUR</span>
+                <span className="text-white">MAKE WAVES</span>
                 <br />
-                <span className="text-red-500">HEART</span>
+                <span className="text-red-500">IN BAHRAIN</span>
               </motion.h1>
               
               <motion.p 
@@ -294,7 +350,7 @@ function AppContent() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
-                Experience the ultimate fusion of power, precision, and passion with Yamaha's legendary motorcycles in Bahrain.
+                Experience the ultimate marine adventure with Yamaha's premium jet skis, boats, and water sports equipment.
               </motion.p>
 
               <motion.div 
@@ -304,62 +360,55 @@ function AppContent() {
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
                 <Button 
-                  onClick={() => scrollToSection('models')}
-                  className="btn-yamaha-primary group w-full sm:w-auto"
-                  aria-label="Explore motorcycle models"
+                  onClick={() => scrollToSection('products')}
+                  className="btn-yamaha-primary group"
                 >
-                  Explore Models
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                  Explore Products
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
                 <Button 
+                  onClick={() => setShowGallery(true)}
                   variant="outline" 
-                  className="glass-panel text-white border-white/30 hover:bg-white/10 w-full sm:w-auto"
-                  aria-label="Watch promotional video"
+                  className="glass-panel text-white border-white/30 hover:bg-white/10"
                 >
-                  <Play className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Watch Video
+                  <Images className="mr-2 h-4 w-4" />
+                  View Gallery
                 </Button>
               </motion.div>
             </motion.div>
 
-            {/* Right Content - Featured Motorcycle */}
+            {/* Right Content - Featured Product */}
             <motion.div 
-              className="relative order-1 lg:order-2"
+              className="relative"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
             >
               <div className="relative">
-                <HeroImage
-                  src={currentMotorcycle.image}
-                  alt={`${currentMotorcycle.name} motorcycle - ${currentMotorcycle.tagline}`}
+                <img
+                  src={featuredProduct.images.main}
+                  alt={featuredProduct.name}
                   className="w-full h-auto max-w-2xl mx-auto drop-shadow-2xl"
                 />
                 
-                {/* Floating Specs Panel */}
+                {/* Product Info Card */}
                 <motion.div 
                   className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 glass-panel p-3 sm:p-4 rounded-xl max-w-xs"
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 1.2 }}
-                  role="region"
-                  aria-labelledby="specs-heading"
                 >
-                  <h3 id="specs-heading" className="text-white font-bold text-base sm:text-lg mb-2">
-                    {currentMotorcycle.name}
+                  <h3 className="text-white font-bold text-base sm:text-lg mb-2">
+                    {featuredProduct.name}
                   </h3>
-                  <div className="grid grid-cols-2 gap-2" role="list">
-                    {Object.entries(currentMotorcycle.specs).map(([key, value]) => (
-                      <div key={key} className="spec-item" role="listitem">
-                        <span className="spec-label text-xs sm:text-sm" aria-label={`${key}:`}>
-                          {key}
-                        </span>
-                        <span className="spec-value text-xs sm:text-sm">
-                          {value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-gray-300 text-sm mb-2">
+                    {featuredProduct.category}
+                  </p>
+                  {typeof featuredProduct.price === 'number' && (
+                    <p className="text-red-500 font-bold">
+                      {formatCurrency(featuredProduct.price)}
+                    </p>
+                  )}
                 </motion.div>
               </div>
             </motion.div>
@@ -371,9 +420,6 @@ function AppContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.5 }}
-            role="button"
-            tabIndex="0"
-            aria-label="Scroll down to explore more content"
           >
             <div className="flex flex-col items-center text-white">
               <span className="text-xs sm:text-sm mb-2">Scroll to explore</span>
@@ -381,18 +427,14 @@ function AppContent() {
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <ChevronDown size={20} className="sm:w-6 sm:h-6" aria-hidden="true" />
+                <ChevronDown size={20} className="sm:w-6 sm:h-6" />
               </motion.div>
             </div>
           </motion.div>
         </section>
 
-        {/* 3D Experience Section */}
-        <section 
-          id="experience" 
-          className="py-12 sm:py-20 bg-gradient-to-b from-background to-gray-900"
-          aria-labelledby="experience-heading"
-        >
+        {/* Products Section */}
+        <section id="products" className="py-12 sm:py-20 bg-gradient-to-b from-black to-gray-900">
           <div className="container mx-auto px-4 sm:px-6">
             <motion.div 
               className="text-center mb-12 sm:mb-16"
@@ -401,192 +443,131 @@ function AppContent() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="experience-heading" className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
-                <span className="text-white">IMMERSIVE</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
+                <span className="text-white">OUR</span>
                 <br />
-                <span className="text-red-500">3D EXPERIENCE</span>
+                <span className="text-red-500">PRODUCTS</span>
               </h2>
-              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-                Explore every detail of our motorcycles in stunning 3D. Customize colors, add performance upgrades, and create your perfect ride.
+              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
+                From high-performance jet skis to luxury boats, discover the perfect watercraft for your adventure.
               </p>
             </motion.div>
 
-            {/* 3D Viewer */}
-            <motion.div
-              className="max-w-6xl mx-auto mb-8 sm:mb-12 motorcycle-viewer"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              role="region"
-              aria-label="3D motorcycle viewer"
-            >
-              <div className="p-4 sm:p-6">
-                <Suspense fallback={<SectionLoader message="Loading 3D Experience..." />}>
-                  <ProductViewer3D motorcycle={currentMotorcycle} className="rounded-xl" />
-                </Suspense>
-              </div>
-            </motion.div>
-
-            {/* Model Selector */}
-            <motion.div
-              className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-4"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-              role="group"
-              aria-label="Select motorcycle model"
-            >
-              {motorcycles.map((motorcycle) => (
+            {/* Category Tabs */}
+            <div className="flex flex-wrap justify-center gap-2 mb-12">
+              {[
+                { id: 'jetSkis', name: 'Jet Skis', icon: '🏍️' },
+                { id: 'boats', name: 'Boats', icon: '🚤' },
+                { id: 'pearlCraft', name: 'Pearl Craft', icon: '⛵' },
+                { id: 'motorcycles', name: 'Motorcycles', icon: '🏍️' },
+                { id: 'accessories', name: 'Accessories', icon: '🎯' }
+              ].map((category) => (
                 <Button
-                  key={motorcycle.id}
-                  onClick={() => setActiveModel(motorcycle.id)}
-                  className={`px-4 sm:px-6 py-3 rounded-lg transition-all text-sm sm:text-base ${
-                    activeModel === motorcycle.id
-                      ? 'btn-yamaha-primary'
-                      : 'glass-panel text-white border-white/30 hover:bg-white/10'
-                  }`}
-                  aria-pressed={activeModel === motorcycle.id}
-                  aria-label={`Select ${motorcycle.name} model`}
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  variant={activeCategory === category.id ? 'default' : 'outline'}
+                  className={activeCategory === category.id 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'text-white border-white/20 hover:bg-white/10'
+                  }
                 >
-                  {motorcycle.name}
+                  <span className="mr-2">{category.icon}</span>
+                  {category.name}
                 </Button>
               ))}
-            </motion.div>
+            </div>
 
-            {/* Action Buttons */}
-            <motion.div
-              className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <Button
-                onClick={() => handleCustomize(currentMotorcycle)}
-                className="btn-yamaha-secondary group w-full sm:w-auto"
-                aria-label={`Customize ${currentMotorcycle.name} model`}
-              >
-                <Wrench className="mr-2 h-4 w-4" aria-hidden="true" />
-                Customize This Model
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-              </Button>
-              <Button
-                variant="outline"
-                className="glass-panel text-white border-white/30 hover:bg-white/10 w-full sm:w-auto"
-                aria-label={`View ${currentMotorcycle.name} in augmented reality`}
-              >
-                <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
-                View in AR
-              </Button>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Models Section */}
-        <section 
-          id="models" 
-          className="py-12 sm:py-20 bg-gradient-to-b from-gray-900 to-background"
-          aria-labelledby="models-heading"
-        >
-          <div className="container mx-auto px-4 sm:px-6">
-            <motion.div 
-              className="text-center mb-12 sm:mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h2 id="models-heading" className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
-                <span className="text-white">CHOOSE YOUR</span>
-                <br />
-                <span className="text-red-500">LEGEND</span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-                From track-bred superbikes to muscle cruisers, discover the Yamaha that matches your passion.
-              </p>
-            </motion.div>
-
-            {/* Model Cards */}
-            <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto" role="list">
-              {motorcycles.map((motorcycle, index) => (
+            {/* Product Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {currentProducts.map((product, index) => (
                 <motion.article
-                  key={motorcycle.id}
+                  key={product.id}
                   className="product-card group cursor-pointer"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  onClick={() => setActiveModel(motorcycle.id)}
-                  role="listitem"
-                  tabIndex="0"
-                  aria-labelledby={`motorcycle-${motorcycle.id}-title`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setActiveModel(motorcycle.id)
-                    }
-                  }}
+                  onClick={() => handleProductView(product)}
                 >
-                  <div className="relative overflow-hidden rounded-lg mb-4 sm:mb-6">
-                    <ProductImage
-                      src={motorcycle.image}
-                      alt={`${motorcycle.name} - ${motorcycle.tagline}`}
+                  <div className="relative overflow-hidden rounded-lg mb-4">
+                    <img
+                      src={product.images.main}
+                      alt={product.name}
                       className="w-full h-48 sm:h-64 object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div className="absolute bottom-4 left-4">
-                      <h3 id={`motorcycle-${motorcycle.id}-title`} className="text-xl sm:text-2xl font-bold text-white">
-                        {motorcycle.name}
+                      <h3 className="text-xl sm:text-2xl font-bold text-white">
+                        {product.name}
                       </h3>
-                      <p className="text-red-400 text-sm sm:text-base">{motorcycle.tagline}</p>
+                      <p className="text-red-400 text-sm sm:text-base">{product.category}</p>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4" role="list" aria-label={`${motorcycle.name} specifications`}>
-                      {Object.entries(motorcycle.specs).map(([key, value]) => (
-                        <div key={key} className="spec-item" role="listitem">
-                          <span className="spec-label capitalize text-xs sm:text-sm" aria-label={`${key}:`}>
-                            {key}
-                          </span>
-                          <span className="spec-value text-xs sm:text-sm">
-                            {value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    {product.specs && (
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        {Object.entries(product.specs).slice(0, 4).map(([key, value]) => (
+                          <div key={key} className="spec-item">
+                            <span className="spec-label capitalize text-xs sm:text-sm">
+                              {key}
+                            </span>
+                            <span className="spec-value text-xs sm:text-sm">
+                              {value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-gray-300 text-sm">
+                      {product.description}
+                    </p>
                     
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-white/10 gap-3">
-                      <span className="text-base sm:text-lg font-semibold text-white" aria-label={`Price: ${motorcycle.price}`}>
-                        {motorcycle.price}
+                      <span className="text-base sm:text-lg font-semibold text-white">
+                        {typeof product.price === 'number' 
+                          ? formatCurrency(product.price)
+                          : product.price
+                        }
                       </span>
                       <div className="flex gap-2">
                         <Button 
                           size="sm"
                           variant="outline"
-                          className="glass-panel text-white border-white/30 hover:bg-white/10 flex-1 sm:flex-none"
+                          className="glass-panel text-white border-white/30 hover:bg-white/10"
                           onClick={(e) => {
                             e.stopPropagation()
-                            setActiveModel(motorcycle.id)
+                            handleProductView(product)
                           }}
-                          aria-label={`View ${motorcycle.name} in 3D`}
                         >
-                          <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                          View 3D
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                          View
                         </Button>
+                        {(activeCategory === 'boats' || activeCategory === 'pearlCraft') && (
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            className="glass-panel text-white border-white/30 hover:bg-white/10"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCustomize(product)
+                            }}
+                          >
+                            <Wrench className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            Customize
+                          </Button>
+                        )}
                         <Button 
                           size="sm"
-                          className="btn-yamaha-secondary flex-1 sm:flex-none"
+                          className="btn-yamaha-secondary"
                           onClick={(e) => {
                             e.stopPropagation()
-                            handleCustomize(motorcycle)
+                            handleFinanceCalculator(product)
                           }}
-                          aria-label={`Customize ${motorcycle.name}`}
                         >
-                          <Wrench className="w-3 h-3 sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                          Customize
+                          <Calculator className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                          Finance
                         </Button>
                       </div>
                     </div>
@@ -594,15 +575,29 @@ function AppContent() {
                 </motion.article>
               ))}
             </div>
+
+            {/* View All Button */}
+            <motion.div
+              className="text-center mt-12"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <Button
+                onClick={() => setShowGallery(true)}
+                className="btn-yamaha-primary"
+                size="lg"
+              >
+                View All Products
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </motion.div>
           </div>
         </section>
 
-        {/* Racing Heritage Section */}
-        <section 
-          id="racing" 
-          className="py-12 sm:py-20 carbon-fiber"
-          aria-labelledby="racing-heading"
-        >
+        {/* Pearl Craft Section */}
+        <section className="py-12 sm:py-20 carbon-fiber">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <motion.div
@@ -611,72 +606,90 @@ function AppContent() {
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
               >
-                <img src={yamahaRacingLogo} alt="Yamaha Factory Racing logo" className="h-12 sm:h-16 mb-6 sm:mb-8" />
-                <h2 id="racing-heading" className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 text-white">
-                  BORN ON THE
-                  <br />
-                  <span className="text-red-500">RACETRACK</span>
-                </h2>
-                <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8">
-                  Every Yamaha motorcycle carries the DNA of our racing heritage. From MotoGP victories to World Superbike championships, our track experience translates directly to the street.
-                </p>
-                <div className="grid grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8" role="list" aria-label="Racing achievements">
-                  <div className="text-center" role="listitem">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-500" aria-label="500 plus race wins">500+</div>
-                    <div className="text-xs sm:text-sm text-gray-400">Race Wins</div>
+                <div className="flex items-center gap-4 mb-6 sm:mb-8">
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                    <Anchor className="w-12 h-12 text-white" />
                   </div>
-                  <div className="text-center" role="listitem">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-500" aria-label="50 plus championships">50+</div>
-                    <div className="text-xs sm:text-sm text-gray-400">Championships</div>
-                  </div>
-                  <div className="text-center" role="listitem">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-500" aria-label="70 years of racing">70</div>
-                    <div className="text-xs sm:text-sm text-gray-400">Years Racing</div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-white">PEARL CRAFT</h3>
+                    <p className="text-gray-400">Bahrain's Premier Boat Manufacturer</p>
                   </div>
                 </div>
-                <Button 
-                  className="btn-yamaha-primary w-full sm:w-auto"
-                  aria-label="Learn more about Yamaha racing heritage"
-                >
-                  Explore Racing Heritage
-                </Button>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 text-white">
+                  PEARL CRAFT
+                  <br />
+                  <span className="text-red-500">EXCELLENCE</span>
+                </h2>
+                <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8">
+                  Since 1992, Pearl Craft has been Bahrain's premier boat manufacturer, trusted by the National Guard, US Navy, and Coast Guard.
+                </p>
+                <div className="grid grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-500">30+</div>
+                    <div className="text-xs sm:text-sm text-gray-400">Years Experience</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-500">1000+</div>
+                    <div className="text-xs sm:text-sm text-gray-400">Boats Built</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-500">5</div>
+                    <div className="text-xs sm:text-sm text-gray-400">Military Contracts</div>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={() => {
+                      setActiveCategory('pearlCraft')
+                      scrollToSection('products')
+                    }}
+                    className="btn-yamaha-primary"
+                  >
+                    Explore Pearl Craft Boats
+                  </Button>
+                  <Button 
+                    onClick={() => setShowBoatComparison(true)}
+                    variant="outline"
+                    className="glass-panel text-white border-white/30 hover:bg-white/10"
+                  >
+                    <Layers className="w-4 h-4 mr-2" />
+                    Compare Models
+                  </Button>
+                </div>
               </motion.div>
               
               <motion.div
-                className="relative"
+                className="grid grid-cols-2 gap-4"
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
               >
-                <div className="glass-panel p-6 sm:p-8 rounded-xl">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Latest Racing News</h3>
-                  <div className="space-y-4" role="list">
-                    <article className="border-b border-white/10 pb-4" role="listitem">
-                      <h4 className="text-white font-semibold text-sm sm:text-base">Yamaha Dominates MotoGP Season</h4>
-                      <p className="text-gray-400 text-xs sm:text-sm">Championship-winning performance continues...</p>
-                    </article>
-                    <article className="border-b border-white/10 pb-4" role="listitem">
-                      <h4 className="text-white font-semibold text-sm sm:text-base">New R1M Track Edition</h4>
-                      <p className="text-gray-400 text-xs sm:text-sm">Limited edition with racing upgrades...</p>
-                    </article>
-                    <article role="listitem">
-                      <h4 className="text-white font-semibold text-sm sm:text-base">Bahrain Track Day Events</h4>
-                      <p className="text-gray-400 text-xs sm:text-sm">Join us at Bahrain International Circuit...</p>
-                    </article>
-                  </div>
-                </div>
+                {assetCatalog.pearlCraft.slice(0, 4).map((boat, index) => (
+                  <motion.div
+                    key={boat.id}
+                    className="glass-panel p-4 rounded-xl cursor-pointer hover:scale-105 transition-transform"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => handleProductView(boat)}
+                  >
+                    <img 
+                      src={boat.images.main} 
+                      alt={boat.name}
+                      className="w-full h-32 object-cover rounded-lg mb-3"
+                    />
+                    <h4 className="text-white font-semibold">{boat.name}</h4>
+                    <p className="text-gray-400 text-sm">{boat.category}</p>
+                  </motion.div>
+                ))}
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* Contact Section */}
-        <section 
-          id="contact" 
-          className="py-12 sm:py-20 bg-gradient-to-b from-background to-gray-900"
-          aria-labelledby="contact-heading"
-        >
+        <section id="contact" className="py-12 sm:py-20 bg-gradient-to-b from-gray-900 to-black">
           <div className="container mx-auto px-4 sm:px-6">
             <motion.div 
               className="text-center mb-12 sm:mb-16"
@@ -685,13 +698,13 @@ function AppContent() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="contact-heading" className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
                 <span className="text-white">GET IN</span>
                 <br />
                 <span className="text-red-500">TOUCH</span>
               </h2>
-              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-                Ready to experience the thrill? Visit our showroom, book a test ride, or get in touch with our experts.
+              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
+                Visit our showroom, book a test ride, or get expert advice on choosing your perfect watercraft.
               </p>
             </motion.div>
 
@@ -708,9 +721,9 @@ function AppContent() {
                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">Visit Our Showroom</h3>
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
-                      <div className="w-5 h-5 bg-red-500 rounded-full mt-1 flex-shrink-0"></div>
+                      <Anchor className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
                       <div>
-                        <h4 className="text-white font-semibold">Yamaha Bahrain Showroom</h4>
+                        <h4 className="text-white font-semibold">Yamaha Marine Bahrain</h4>
                         <p className="text-gray-300">Building 123, Road 456<br />Manama, Kingdom of Bahrain</p>
                       </div>
                     </div>
@@ -727,7 +740,7 @@ function AppContent() {
                         <h4 className="text-white font-semibold">Contact Info</h4>
                         <p className="text-gray-300">
                           <a href="tel:+97312345678" className="hover:text-white transition-colors">+973 1234 5678</a><br />
-                          <a href="mailto:info@yamaha-bahrain.com" className="hover:text-white transition-colors">info@yamaha-bahrain.com</a>
+                          <a href="mailto:marine@yamaha-bahrain.com" className="hover:text-white transition-colors">marine@yamaha-bahrain.com</a>
                         </p>
                       </div>
                     </div>
@@ -737,17 +750,32 @@ function AppContent() {
                 <div className="glass-panel p-6 sm:p-8 rounded-xl">
                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">Quick Actions</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button className="btn-yamaha-primary w-full">
+                    <Button 
+                      className="btn-yamaha-primary w-full"
+                      onClick={() => trackEvent.clickCTA('Book Test Ride', 'contact')}
+                    >
                       Book Test Ride
                     </Button>
-                    <Button variant="outline" className="glass-panel text-white border-white/30 hover:bg-white/10 w-full">
+                    <Button 
+                      variant="outline" 
+                      className="glass-panel text-white border-white/30 hover:bg-white/10 w-full"
+                      onClick={() => trackEvent.clickCTA('Schedule Service', 'contact')}
+                    >
                       Schedule Service
                     </Button>
-                    <Button variant="outline" className="glass-panel text-white border-white/30 hover:bg-white/10 w-full">
-                      Get Quote
+                    <Button 
+                      variant="outline" 
+                      className="glass-panel text-white border-white/30 hover:bg-white/10 w-full"
+                      onClick={() => trackEvent.requestBrochure('general')}
+                    >
+                      Get Brochure
                     </Button>
-                    <Button variant="outline" className="glass-panel text-white border-white/30 hover:bg-white/10 w-full">
-                      Find Dealer
+                    <Button 
+                      variant="outline" 
+                      className="glass-panel text-white border-white/30 hover:bg-white/10 w-full"
+                      onClick={() => setShowFinanceCalculator(true)}
+                    >
+                      Calculate Finance
                     </Button>
                   </div>
                 </div>
@@ -762,7 +790,13 @@ function AppContent() {
               >
                 <div className="glass-panel p-6 sm:p-8 rounded-xl">
                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">Send us a Message</h3>
-                  <form className="space-y-4">
+                  <form 
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      trackEvent.submitForm('contact_form')
+                    }}
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">
@@ -774,6 +808,7 @@ function AppContent() {
                           name="firstName"
                           className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 transition-colors"
                           placeholder="Your first name"
+                          required
                         />
                       </div>
                       <div>
@@ -786,6 +821,7 @@ function AppContent() {
                           name="lastName"
                           className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 transition-colors"
                           placeholder="Your last name"
+                          required
                         />
                       </div>
                     </div>
@@ -799,6 +835,7 @@ function AppContent() {
                         name="email"
                         className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 transition-colors"
                         placeholder="your.email@example.com"
+                        required
                       />
                     </div>
                     <div>
@@ -811,6 +848,7 @@ function AppContent() {
                         name="phone"
                         className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 transition-colors"
                         placeholder="+973 XXXX XXXX"
+                        required
                       />
                     </div>
                     <div>
@@ -821,13 +859,15 @@ function AppContent() {
                         id="interest"
                         name="interest"
                         className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-red-500 transition-colors"
+                        required
                       >
                         <option value="">Select your interest</option>
+                        <option value="jet-ski">Jet Ski Purchase</option>
+                        <option value="boat">Boat Purchase</option>
                         <option value="test-ride">Test Ride</option>
-                        <option value="purchase">Purchase</option>
-                        <option value="service">Service</option>
+                        <option value="service">Service & Maintenance</option>
                         <option value="parts">Parts & Accessories</option>
-                        <option value="financing">Financing</option>
+                        <option value="financing">Financing Options</option>
                         <option value="other">Other</option>
                       </select>
                     </div>
@@ -843,7 +883,10 @@ function AppContent() {
                         placeholder="Tell us more about your requirements..."
                       ></textarea>
                     </div>
-                    <Button type="submit" className="btn-yamaha-primary w-full">
+                    <Button 
+                      type="submit" 
+                      className="btn-yamaha-primary w-full"
+                    >
                       Send Message
                     </Button>
                   </form>
@@ -855,33 +898,33 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black py-8 sm:py-12" role="contentinfo">
+      <footer className="bg-black py-8 sm:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1">
               <img src={yamahaLogo} alt="Yamaha Motor Company" className="h-6 sm:h-8 mb-3 sm:mb-4" />
               <p className="text-gray-400 text-sm sm:text-base">
-                Revs Your Heart - Experience the passion of motorcycling with Yamaha Bahrain.
+                Making Waves - Experience the thrill of Yamaha marine products in Bahrain.
               </p>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Models</h4>
-              <nav aria-label="Motorcycle models">
+              <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Products</h4>
+              <nav>
                 <ul className="space-y-2 text-gray-400 text-sm">
-                  <li><a href="#" className="hover:text-white transition-colors">Sport Bikes</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Cruisers</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Adventure</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Scooters</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Jet Skis</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Boats</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Pearl Craft</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Accessories</a></li>
                 </ul>
               </nav>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Services</h4>
-              <nav aria-label="Services">
+              <nav>
                 <ul className="space-y-2 text-gray-400 text-sm">
                   <li><a href="#" className="hover:text-white transition-colors">Test Rides</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Service Center</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Parts & Accessories</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Parts & Service</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Financing</a></li>
                 </ul>
               </nav>
@@ -896,8 +939,8 @@ function AppContent() {
                   </a>
                 </div>
                 <div>
-                  <a href="mailto:info@yamaha-bahrain.com" className="hover:text-white transition-colors">
-                    info@yamaha-bahrain.com
+                  <a href="mailto:marine@yamaha-bahrain.com" className="hover:text-white transition-colors">
+                    marine@yamaha-bahrain.com
                   </a>
                 </div>
               </address>
@@ -909,8 +952,72 @@ function AppContent() {
         </div>
       </footer>
 
+      {/* Modals */}
+      {/* Enhanced Product Viewer */}
+      {showProductViewer && selectedProduct && (
+        <EnhancedProductViewer
+          product={selectedProduct}
+          onClose={() => setShowProductViewer(false)}
+        />
+      )}
+
+      {/* Pearl Craft 3D Viewer */}
+      {showPearlCraft3D && selectedProduct && (
+        <Suspense fallback={<PageLoader />}>
+          <PearlCraft3DViewer
+            boat={selectedProduct}
+            onClose={() => setShowPearlCraft3D(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Boat Comparison Tool */}
+      {showBoatComparison && (
+        <Suspense fallback={<PageLoader />}>
+          <BoatComparisonTool
+            onClose={() => setShowBoatComparison(false)}
+            initialBoats={activeCategory === 'pearlCraft' ? assetCatalog.pearlCraft.slice(0, 2) : []}
+          />
+        </Suspense>
+      )}
+
+      {/* Boat Customizer */}
+      {showBoatCustomizer && selectedProduct && (
+        <Suspense fallback={<PageLoader />}>
+          <BoatCustomizer
+            boat={selectedProduct}
+            onClose={() => setShowBoatCustomizer(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Finance Calculator Modal */}
+      {showFinanceCalculator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => setShowFinanceCalculator(false)}
+              className="absolute top-4 right-4 z-10 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <FinanceCalculator 
+              productPrice={selectedProduct?.price || 8500}
+              productName={selectedProduct?.name || 'Yamaha Product'}
+            />
+          </motion.div>
+        </div>
+      )}
+
       {/* Accessibility Controls */}
       <AccessibilityControls />
+
+      {/* Live Chat Widget */}
+      <LiveChat />
     </div>
   )
 }
@@ -924,4 +1031,3 @@ function App() {
 }
 
 export default App
-
