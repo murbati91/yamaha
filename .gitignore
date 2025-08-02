@@ -206,3 +206,4 @@ dist-ssr
 
 # Deployment files
 windsurf_deployment.yaml
+node_modules

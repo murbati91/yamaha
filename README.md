@@ -1,221 +1,193 @@
-# 🏍️ Yamaha Bahrain - Premium Motorcycle Landing Page
+# Yamaha Bahrain - Premium Boat & Marine Website
 
-A stunning, premium landing page for Yamaha motorcycles in Bahrain featuring 3D product showcases, advanced UI/UX, and engineering excellence.
+A cutting-edge website for Yamaha Bahrain featuring Pearl Craft boats with an advanced 3D configurator, built with React, Vite, Three.js, and shadcn/ui.
 
-![Yamaha Bahrain](./preview.png)
+## 🚀 Features
 
-## ✨ Features
+### Premium 3D Boat Configurator
+- **Midnight Express-style interface** with real-time 3D visualization
+- **Comprehensive customization options**:
+  - Hull color (6 options)
+  - Hull bottom color
+  - Deck color (4 options)
+  - Seat colors (4 options)
+  - Hardtop/T-top options
+  - Motor colors and accents
+  - Rub rail colors
+  - Electronics packages
+- **Real-time pricing** updates as you customize
+- **Share & download** configurations
+- **360° view controls** with zoom and rotation
 
-### 🎨 Design & UI/UX
-- **Premium Design**: Modern, sleek interface with Yamaha's signature red and blue branding
-- **Glass Morphism**: Beautiful glass panels with backdrop blur effects
-- **Smooth Animations**: Framer Motion powered animations and micro-interactions
-- **Racing Heritage**: Carbon fiber textures and racing-inspired design elements
+### Modern UI/UX with shadcn/ui
+- **Dynamic animations** with Framer Motion
+- **Glass morphism effects** for modern aesthetics
+- **Gradient buttons and badges** for visual appeal
+- **Responsive design** for all devices
+- **Dark theme** with high contrast
+- **Smooth transitions** and micro-interactions
 
-### 🌐 3D Experience
-- **Interactive 3D Viewer**: Explore motorcycles in stunning 3D detail
-- **Product Customizer**: Real-time color changes and performance upgrades
-- **Multiple Models**: YZF-R1 and VMAX with detailed specifications
-- **AR Ready**: "View in AR" functionality for immersive experience
+### Product Showcase
+- **Tabbed navigation** for different product categories
+- **Interactive product cards** with hover effects
+- **Gallery view** with lightbox
+- **360° product views** (prepared for implementation)
+- **Comparison tool** for side-by-side analysis
+- **Finance calculator** with monthly payment options
 
-### 📱 Responsive & Performance
-- **Mobile-First**: Fully responsive design for all devices
-- **Performance Optimized**: Lazy loading, code splitting, and optimized assets
-- **Progressive Enhancement**: Works on all browsers with graceful degradation
-- **Loading States**: Beautiful loading animations and progress indicators
+### Performance & Technical
+- **Lazy loading** for optimal performance
+- **Code splitting** with dynamic imports
+- **Optimized 3D rendering** with Three.js
+- **PWA-ready** architecture
+- **SEO optimized** structure
 
-### ♿ Accessibility
-- **WCAG Compliant**: Full accessibility support with ARIA labels
-- **High Contrast Mode**: Toggle for better visibility
-- **Font Size Controls**: Adjustable text size (Small, Normal, Large)
-- **Keyboard Navigation**: Full keyboard support
-- **Screen Reader**: Optimized for assistive technologies
+## 🛠️ Tech Stack
 
-### 🚀 Technical Excellence
-- **React 18**: Latest React with Suspense and lazy loading
-- **Tailwind CSS**: Utility-first CSS framework
-- **Three.js**: 3D graphics and animations
-- **Framer Motion**: Smooth animations and transitions
-- **TypeScript Ready**: Type-safe development environment
+- **Frontend Framework**: React 18
+- **Build Tool**: Vite
+- **UI Components**: shadcn/ui (Radix UI + Tailwind CSS)
+- **3D Graphics**: Three.js + React Three Fiber
+- **Animations**: Framer Motion
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **State Management**: Zustand (prepared)
+- **Form Handling**: React Hook Form
 
-## 🛠️ Quick Start
+## 📦 Installation
 
-### Prerequisites
-- **Node.js 18+** - [Download here](https://nodejs.org/)
-- **pnpm** (will be installed automatically)
-
-### Option 1: Automated Setup (Recommended)
-
-#### For Mac/Linux:
 ```bash
-chmod +x setup.sh
-./setup.sh
-```
+# Clone the repository
+git clone [repository-url]
 
-#### For Windows:
-```cmd
-setup.bat
-```
+# Navigate to project directory
+cd C:\Users\Faisal\CascadeProjects\yamaha\yamaha-bahrain
 
-### Option 2: Manual Setup
-
-1. **Install dependencies:**
-```bash
-npm install -g pnpm
+# Install dependencies
 pnpm install
-```
 
-2. **Start development server:**
-```bash
+# Start development server
 pnpm run dev
 ```
 
-3. **Build for production:**
-```bash
-pnpm run build
-```
-
-4. **Preview production build:**
-```bash
-pnpm run preview
-```
-
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
 yamaha-bahrain/
 ├── src/
-│   ├── components/          # React components
-│   │   ├── ui/             # UI components (buttons, etc.)
-│   │   ├── ProductViewer3D.jsx    # 3D motorcycle viewer
-│   │   ├── ProductCustomizer.jsx  # Customization interface
-│   │   ├── LoadingSpinner.jsx     # Loading components
-│   │   ├── OptimizedImage.jsx     # Image optimization
-│   │   └── AccessibilityProvider.jsx # Accessibility features
-│   ├── hooks/              # Custom React hooks
-│   │   └── usePerformance.js      # Performance monitoring
-│   ├── assets/             # Static assets
-│   │   └── images/         # Motorcycle images and logos
-│   ├── App.jsx             # Main application component
-│   ├── App.css             # Global styles and animations
-│   └── main.jsx            # Application entry point
-├── public/                 # Public assets
-├── dist/                   # Production build output
-├── setup.sh               # Unix/Mac setup script
-├── setup.bat              # Windows setup script
-└── README.md              # This file
+│   ├── components/
+│   │   ├── ui/              # shadcn/ui components
+│   │   │   ├── button.jsx
+│   │   │   ├── card.jsx
+│   │   │   ├── dialog.jsx
+│   │   │   ├── tabs.jsx
+│   │   │   └── ...
+│   │   ├── PremiumBoatConfigurator.jsx
+│   │   ├── BoatShowcase.jsx
+│   │   ├── FinanceCalculator.jsx
+│   │   └── ...
+│   ├── data/
+│   │   └── assetCatalog.js  # Product data
+│   ├── hooks/
+│   │   └── use-toast.js
+│   ├── lib/
+│   │   └── utils.js         # Utility functions
+│   ├── App.jsx              # Main application
+│   └── index.css            # Global styles
+├── public/
+│   └── images/              # Static assets
+└── package.json
 ```
-
-## 🎯 Key Components
-
-### ProductViewer3D
-Interactive 3D motorcycle viewer with:
-- Real-time 3D rendering
-- Color customization
-- Camera controls (zoom, rotate)
-- Specification overlays
-
-### ProductCustomizer
-Step-by-step customization interface:
-- Color selection
-- Performance upgrades
-- Accessories
-- Price calculation
-
-### AccessibilityProvider
-Comprehensive accessibility features:
-- High contrast mode
-- Font size controls
-- Screen reader support
-- Keyboard navigation
 
 ## 🎨 Design System
 
 ### Colors
-- **Primary Red**: `#DC2626` (Yamaha Racing Red)
-- **Primary Blue**: `#1E40AF` (Yamaha Blue)
-- **Background**: `#0A0A0A` (Deep Black)
-- **Glass**: `rgba(255, 255, 255, 0.1)` with backdrop blur
+- **Primary**: Red (#DC2626)
+- **Secondary**: Blue (#1E40AF)
+- **Background**: Black (#0A0A0A)
+- **Surface**: Gray (#111111)
+- **Text**: White (#FFFFFF)
+- **Muted**: Gray (#9CA3AF)
 
 ### Typography
-- **Headings**: Montserrat (Bold, 800)
-- **Body**: Inter (Regular, 400-600)
-- **Responsive**: Scales from mobile to desktop
+- **Headings**: System UI, bold
+- **Body**: System UI, regular
+- **Monospace**: Monaco, Consolas
 
-### Animations
-- **Page Load**: 2-second branded loading screen
-- **Scroll**: Intersection Observer triggered animations
-- **Hover**: Smooth micro-interactions
-- **3D**: Hardware-accelerated transforms
-
-## 🔧 Development
-
-### Available Scripts
-- `pnpm run dev` - Start development server
-- `pnpm run build` - Build for production
-- `pnpm run preview` - Preview production build
-- `pnpm run lint` - Run ESLint
-
-### Environment Variables
-No environment variables required for basic functionality.
-
-### Browser Support
-- **Modern Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-- **Mobile**: iOS Safari 14+, Chrome Mobile 90+
-- **3D Features**: WebGL 2.0 support required
-
-## 📱 Mobile Experience
-
-The website is fully optimized for mobile devices with:
-- Touch-friendly interface
-- Responsive 3D viewer
-- Mobile-optimized navigation
-- Performance optimizations for slower connections
+### Components
+- Modern card designs with glass morphism
+- Gradient buttons with hover effects
+- Animated badges and indicators
+- Smooth transitions and micro-interactions
 
 ## 🚀 Deployment
 
-### Production Build
+The site auto-deploys to Vercel on push to main branch:
+
 ```bash
+# Build for production
 pnpm run build
+
+# Preview production build
+pnpm run preview
+
+# Deploy (automatic on push)
+git push origin main
 ```
 
-The `dist/` folder contains the production-ready files that can be deployed to any static hosting service.
+## 📱 Responsive Design
 
-### Hosting Recommendations
-- **Vercel** - Automatic deployments from Git
-- **Netlify** - Easy drag-and-drop deployment
-- **GitHub Pages** - Free hosting for public repositories
-- **AWS S3** - Scalable cloud hosting
+- **Mobile**: 320px - 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: 1024px - 1440px
+- **Wide**: 1440px+
+
+## 🔧 Configuration
+
+### Environment Variables
+```env
+VITE_API_URL=your_api_url
+VITE_PUBLIC_URL=https://yamaha.bahrain-ai.com
+```
+
+### Customization
+- Update color scheme in `tailwind.config.js`
+- Modify UI components in `src/components/ui/`
+- Add new products in `src/data/assetCatalog.js`
+
+## 📈 Future Enhancements
+
+- [ ] AR/VR boat viewing
+- [ ] AI-powered boat recommendations
+- [ ] Virtual test drive simulator
+- [ ] Integration with dealer inventory
+- [ ] Multi-language support (Arabic)
+- [ ] Customer portal with saved configurations
+- [ ] Real-time availability checker
+- [ ] Trade-in value calculator
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary to Yamaha Bahrain. All rights reserved.
 
-## 🙏 Acknowledgments
+## 👥 Team
 
-- **Yamaha Motor Company** - For the inspiration and branding
-- **Three.js Community** - For 3D graphics capabilities
-- **React Team** - For the amazing framework
-- **Tailwind CSS** - For the utility-first CSS framework
+- **Development**: Cascade Projects
+- **Design**: Premium UI/UX with shadcn/ui
+- **3D Models**: Pearl Craft boat models
 
 ## 📞 Support
 
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the setup scripts
+For support, email support@yamaha-bahrain.com or contact the development team.
 
 ---
 
-**Built with ❤️ for motorcycle enthusiasts in Bahrain**
-
-*Rev Your Heart* 🏍️
-
+Built with ❤️ by Cascade Projects for Yamaha Bahrain
