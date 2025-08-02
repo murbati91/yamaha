@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench, Calculator, Images, Anchor, Layers, Ship, Sparkles, ChevronRight, Star, Globe, Shield, Award, Zap, TrendingUp, Users, BadgeCheck, Navigation } from 'lucide-react'
+import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench, Calculator, Image, Anchor, Layers, Ship, Sparkles, ChevronRight, Star, Globe, Shield, Award, Zap, TrendingUp, Users, BadgeCheck, Navigation } from 'lucide-react'
 import './App.css'
 
 // UI Components
