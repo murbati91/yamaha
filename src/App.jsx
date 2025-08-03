@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench, Calculator, Image, Anchor, Layers, Ship, Sparkles, ChevronRight, Star, Globe, Shield, Award, Zap, TrendingUp, Users, BadgeCheck, Navigation } from 'lucide-react'
-import './App.css'
+// import './App.css' - Removed to use modern styles from index.css
 
 // UI Components
 import { Button } from '@/components/ui/button'
