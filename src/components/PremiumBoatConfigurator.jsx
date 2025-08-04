@@ -4,6 +4,7 @@ import { X, Download, Share2, Camera, RotateCw, ZoomIn, ZoomOut, Palette, Settin
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Environment, ContactShadows, Center, useGLTF, Stage, PresentationControls, Float } from '@react-three/drei'
 import * as THREE from 'three'
+import { ImprovedBoatModel } from './ImprovedBoatModel'
 
 // UI Components
 import { Button } from '@/components/ui/button'
@@ -233,7 +234,7 @@ function BoatModel({ colors, boatType = 'sport' }) {
 }
 
 // 3D Scene Component
-function Scene({ colors, boatType }) {
+function Scene({ colors, boatType, modelPath }) {
   const { camera } = useThree()
   
   useEffect(() => {
@@ -241,13 +242,30 @@ function Scene({ colors, boatType }) {
     camera.lookAt(0, 0, 0)
   }, [camera])
   
+  // Try to load actual 3D model if path provided
+  const Model3D = () => {
+    if (modelPath) {
+      try {
+        const { scene } = useGLTF(modelPath)
+        return <primitive object={scene} scale={0.01} />
+      } catch (error) {
+        console.warn('3D model not found, using procedural model:', error)
+        return <ImprovedBoatModel colors={colors} boatType={boatType} />
+      }
+    }
+    return <ImprovedBoatModel colors={colors} boatType={boatType} />
+  }
+  
   return (
     <>
       <ambientLight intensity={0.5} />
-      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
       <pointLight position={[-10, -10, -10]} intensity={0.5} />
+      <directionalLight position={[0, 10, 5]} intensity={0.5} castShadow />
       
-      <BoatModel colors={colors} boatType={boatType} />
+      <Suspense fallback={<ImprovedBoatModel colors={colors} boatType={boatType} />}>
+        <Model3D />
+      </Suspense>
       
       <ContactShadows 
         opacity={0.4}
@@ -265,6 +283,8 @@ function Scene({ colors, boatType }) {
         maxDistance={10}
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI / 2}
+        autoRotate
+        autoRotateSpeed={0.5}
       />
     </>
   )
@@ -469,9 +489,32 @@ export default function PremiumBoatConfigurator({ boat, onClose }) {
           <div className="flex-1 flex">
             {/* 3D Viewer */}
             <div className="flex-1 relative bg-gradient-to-br from-blue-900/20 to-gray-900">
+              {/* Model Loading Info */}
+              {!boat?.modelPath && (
+                <div className="absolute top-4 right-4 z-10">
+                  <Card className="bg-yellow-900/90 backdrop-blur border-yellow-800 max-w-xs">
+                    <CardContent className="p-3">
+                      <p className="text-yellow-200 text-sm">
+                        <span className="font-semibold">Note:</span> Using procedural 3D model. 
+                        For realistic models, add .glb files to /public/models/boats/
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
               <Canvas shadows camera={{ position: [5, 3, 5], fov: 50 }}>
-                <Suspense fallback={null}>
-                  <Scene colors={colors} boatType={boat?.type} />
+                <Suspense fallback={
+                  <mesh>
+                    <boxGeometry args={[1, 1, 1]} />
+                    <meshStandardMaterial color="#DC2626" />
+                  </mesh>
+                }>
+                  <Scene 
+                    colors={colors} 
+                    boatType={boat?.type} 
+                    modelPath={boat?.modelPath || `/models/boats/${boat?.id}.glb`}
+                  />
                 </Suspense>
               </Canvas>
               
