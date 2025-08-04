@@ -5,12 +5,21 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  css: {
+    postcss: './postcss.config.js',
+    // Ensure CSS is processed
+    modules: {
+      localsConvention: 'camelCase'
+    }
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
+    // Ensure CSS is included in build
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -30,6 +39,13 @@ export default defineConfig({
             return 'vendor';
           }
         },
+        // Ensure CSS has consistent naming
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name.endsWith('.css')) {
+            return 'assets/css/[name]-[hash].css';
+          }
+          return 'assets/[name]-[hash].[ext]';
+        }
       },
     },
     chunkSizeWarningLimit: 1000,

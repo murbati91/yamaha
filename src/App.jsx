@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown, Play, ArrowRight, Eye, Wrench, Calculator, Image, Anchor, Layers, Ship, Sparkles, ChevronRight, Star, Globe, Shield, Award, Zap, TrendingUp, Users, BadgeCheck, Navigation } from 'lucide-react'
+import { DebugCSS } from './debug-css'
 // import './App.css' - Removed to use modern styles from index.css
 
 // UI Components
@@ -732,6 +733,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Temporary Debug Component - Remove after fixing */}
+      {process.env.NODE_ENV === 'development' || window.location.search.includes('debug') ? <DebugCSS /> : null}
+      
       <NavigationBar isScrolled={isScrolled} />
       
       <HeroSection 
